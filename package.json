@@ -1,0 +1,36 @@
+{
+  "name": "logger-ts",
+  "version": "0.1.0",
+  "description": "Discord message logger by Zeehondie rewritten to TypeScript.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && npm prune --production",
+    "start": "node dist/index.js",
+    "once": "tsc && npm start",
+    "dev": "tsc-watch --onSuccess \"node dist/index.js dev\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/keanuplayz/LoggerTS.git"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "discord.js"
+  ],
+  "author": "Keanu Timmermans",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/keanuplayz/LoggerTS/issues"
+  },
+  "homepage": "https://github.com/keanuplayz/LoggerTS#readme",
+  "devDependencies": {
+    "@types/node": "^14.14.31",
+    "@types/ws": "^7.4.0",
+    "ts-node": "^9.1.1",
+    "tsc-watch": "^4.2.9"
+  },
+  "dependencies": {
+    "typescript": "^3.9.9"
+  }
+}
