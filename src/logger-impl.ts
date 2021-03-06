@@ -7,6 +7,7 @@ export default class LoggerImpl extends LoggerClient {
   public constructor(co: commando.CommandoClientOptions) {
     super(co);
     this.registry = new LoggerCommandRegistry(this);
+    this.dispatcher = new commando.CommandDispatcher(this, this.registry);
     registerAllCommands(this);
   }
 }
