@@ -31,6 +31,11 @@ class LoggerMain {
 const logger = new LoggerMain();
 let shuttingDown = false;
 
+logger.client.on('ready', (): void => {
+  console.log(logger.client.commandPrefix);
+  console.log(logger.client.registry);
+});
+
 async function shutdown(): Promise<void> {
   if (shuttingDown) return;
   console.log('Goodbye.');
