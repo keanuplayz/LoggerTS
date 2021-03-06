@@ -27,7 +27,7 @@ export abstract class LoggerCommand extends commando.Command {
   public async onBlock(
     message: commando.CommandoMessage,
     reason: string,
-    data?: Object,
+    data?: Record<string, unknown>,
   ): Promise<discord.Message | discord.Message[]> {
     if (reason === 'throttling') return [];
     return super.onBlock(message, reason, data);

@@ -1,6 +1,4 @@
 import * as fs from 'fs';
-import * as discord from 'discord.js';
-import * as commando from 'discord.js-commando';
 import { Secrets } from './data/structures';
 import LoggerImpl from './logger-impl';
 import { LoggerClient } from './logger';
@@ -30,10 +28,14 @@ class LoggerMain {
 
 const logger = new LoggerMain();
 let shuttingDown = false;
+let cmdText = '';
 
 logger.client.on('ready', (): void => {
   console.log(logger.client.commandPrefix);
-  console.log(logger.client.registry);
+  logger.client.registry.commands.forEach((command) => {
+    command.name += cmdText;
+  });
+  console.log(cmdText);
 });
 
 async function shutdown(): Promise<void> {
