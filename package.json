@@ -4,7 +4,7 @@
   "description": "Discord message logger by Zeehondie rewritten to TypeScript.",
   "main": "dist/main.js",
   "scripts": {
-    "build": "tsc && npm prune --production",
+    "build": "tsc",
     "start": "node dist/main.js",
     "once": "tsc && npm start",
     "dev": "tsc-watch --onSuccess \"node dist/index.js dev\"",

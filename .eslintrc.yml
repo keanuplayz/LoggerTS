@@ -25,3 +25,4 @@ overrides:
       require-await: off
       '@typescript-eslint/no-dynamic-delete': off
       no-undefined: off
+      no-process-exit: off
