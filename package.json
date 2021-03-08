@@ -28,8 +28,8 @@
   "devDependencies": {
     "@types/node": "14.14.32",
     "@types/ws": "7.4.0",
-    "@typescript-eslint/eslint-plugin": "4.16.1",
-    "@typescript-eslint/parser": "4.16.1",
+    "@typescript-eslint/eslint-plugin": "4.17.0",
+    "@typescript-eslint/parser": "4.17.0",
     "eslint": "7.21.0",
     "eslint-config-dmitmel": "github:dmitmel/eslint-config-dmitmel",
     "eslint-plugin-node": "11.1.0",
