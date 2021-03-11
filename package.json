@@ -26,16 +26,16 @@
   },
   "homepage": "https://github.com/keanuplayz/LoggerTS#readme",
   "devDependencies": {
-    "@types/node": "^14.14.31",
-    "@types/ws": "^7.4.0",
-    "@typescript-eslint/eslint-plugin": "^4.16.1",
-    "@typescript-eslint/parser": "^4.16.1",
-    "eslint": "^7.21.0",
+    "@types/node": "14.14.33",
+    "@types/ws": "7.4.0",
+    "@typescript-eslint/eslint-plugin": "4.17.0",
+    "@typescript-eslint/parser": "4.17.0",
+    "eslint": "7.21.0",
     "eslint-config-dmitmel": "github:dmitmel/eslint-config-dmitmel",
-    "eslint-plugin-node": "^11.1.0",
-    "ts-node": "^9.1.1",
-    "tsc-watch": "^4.2.9",
-    "typescript": "^4.2.3"
+    "eslint-plugin-node": "11.1.0",
+    "ts-node": "9.1.1",
+    "tsc-watch": "4.2.9",
+    "typescript": "4.2.3"
   },
   "dependencies": {
     "discord.js": "^12.5.1",
