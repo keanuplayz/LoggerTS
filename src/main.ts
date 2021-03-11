@@ -1,11 +1,15 @@
 import * as fs from 'fs';
-import { Secrets } from './data/structures';
+import { Config, Data, Secrets } from './data/structures';
 import LoggerImpl from './logger-impl';
 import { LoggerClient } from './logger';
+import { TextChannel } from 'discord.js';
+import { createEmbed } from './utils';
 
 class LoggerMain {
   public readonly client: LoggerClient;
   public readonly secrets: Secrets;
+  public readonly config: Config;
+  public readonly data: Data;
 
   public constructor() {
     this.secrets = JSON.parse(fs.readFileSync('secrets.json', 'utf8'));
@@ -13,6 +17,8 @@ class LoggerMain {
       owner: this.secrets.owner,
       commandPrefix: this.secrets.commandPrefix,
     });
+    this.config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+    this.data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
 
     const kickstart = async (): Promise<void> => {
       try {
@@ -38,6 +44,15 @@ logger.client.on('ready', (): void => {
   console.log(cmdText);
 });
 
+logger.client.on('message', (msg) => {
+  if (msg.author.id == logger.client.user?.id) return;
+  console.log(msg.content)
+  const chan = logger.client.channels.cache.get(logger.config.sendChannel) as TextChannel;
+  const source = logger.client.channels.cache.get(msg.channel.id) as TextChannel;
+  const emb = createEmbed(`Message from ${source.name}`, msg.content);
+  chan.send({ embed: emb });
+})
+
 async function shutdown(): Promise<void> {
   if (shuttingDown) return;
   console.log('Goodbye.');
@@ -51,7 +66,7 @@ async function shutdown(): Promise<void> {
 }
 
 process.on('exit', shutdown);
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
-process.on('SIGUSR1', shutdown);
-process.on('SIGUSR2', shutdown);
+// process.on('SIGINT', shutdown);
+// process.on('SIGTERM', shutdown);
+// process.on('SIGUSR1', shutdown);
+// process.on('SIGUSR2', shutdown);

@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/main.js",
     "once": "tsc && npm start",
-    "dev": "tsc-watch --onSuccess \"node dist/index.js dev\"",
+    "dev": "tsc-watch --onSuccess \"node dist/main.js dev\"",
     "lint": "eslint src --ext .js,.ts --ignore-path .gitignore"
   },
   "repository": {
