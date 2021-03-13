@@ -1,0 +1,6 @@
+[
+    {
+        "type": "purge-database",
+        "timeMs": 1209600000
+    }
+]

@@ -1,0 +1,99 @@
+{
+    "507116232638595083": {
+        "comment": "Shizuka Cult",
+        "greeting": "<@%(cause)>, Welcome, enjoy your stay~",
+        "channel-greet": "cult-enterance",
+        "channel-info": "info",
+        "channel-syslog": "syslog",
+        "channel-editlog": "editlog"
+    },
+    "143364538958348288": {
+        "comment": "CrossCode (official, verified, etc.)",
+        "greeting": "<@%(cause)>, Welcome!",
+        "roles-whitelist": [
+            "class"
+        ],
+        "roles-exclusive": [
+            "class"
+        ],
+        "roles-group-class": [
+            "spheromancer",
+            "triblader",
+            "quadroguard",
+            "pentafist",
+            "hexacast"
+        ],
+        "nsfw": false
+    },
+    "382339402338402315": {
+        "comment": "CrossCode Modding (NOTE! 'admin' isn't implemented & the role whitelist is TOO EMPTY right now!!!)",
+        "greeting": "<@%(cause)>, Welcome! Use `%(prefix) -roles add <role>` to add a role!\nTo see a list of available roles, please visit #role-list",
+        "channel-syslog": "admin-watchtower",
+        "roles-group-auto-role": [
+            "member"
+        ],
+        "roles-whitelist": [
+            "assignable"
+        ],
+        "roles-group-assignable": [
+        ],
+        "prefix": ".cc",
+        "optin-roles": "yes",
+        "nsfw": false
+    },
+    "210920824503402496": {
+        "comment": "Lovely Emote Additions",
+        "greeting": "<@%(cause)>, Welcome!",
+        "channel-editlog": "edit-log",
+        "nsfw": false
+    },
+    "558469426765103135": {
+        "comment": "CrossCode PP Up",
+        "prefix": ".cc",
+        "emote-shizuHUG": "599432186692632628",
+        "nsfw": true
+    },
+    "562379828330889236": {
+        "comment": "20kdc's Scratchpad",
+        "greeting": "Hiya, <@%(cause)>!",
+        "channel-greet": "knights-of-the-round",
+        "roles-whitelist": [
+            "fruit",
+            "shutdown"
+        ],
+        "roles-group-fruit": [
+            "test-role/apple",
+            "test-role/banana",
+            "test-role/pear"
+        ],
+        "roles-group-shutdown": [
+            "shutdown now"
+        ],
+        "roles-group-auto-role": [
+            "test-role/pear"
+        ],
+        "roles-exclusive": [
+            "fruit"
+        ],
+        "roles-inclusive": [
+            "fruit",
+            "shutdown"
+        ],
+        "prefix": ".cc",
+        "optin-roles": "both"
+    },
+    "global": {
+        "comment": "Regarding those places not shown here, they all had effectively default settings.",
+        "emotePath": ["143364538958348288", "210920824503402496", "382339402338402315"],
+        "emotes": ["leaHAPPY", "leaTHINK", "leaBAT", "leaCheese", "ohno", "emilieWhy", "apolloPoint", "apolloShout", "shizuHUG"],
+        "emote-leaHAPPY": "337987483788902410",
+        "emote-leaTHINK": "397961863805140992",
+        "emote-leaBAT": "453150959875522560",
+        "emote-leaCheese": "257888171772215296",
+        "emote-ohno": "454382402920251415",
+        "emote-emilieWhy": "337989242674479105",
+        "emote-apolloPoint": "337987749011259392",
+        "emote-apolloShout": "337987748675715076",
+        "emote-shizuHUG": "515375915757338635"
+    }
+}

@@ -2,43 +2,41 @@
   "name": "logger-ts",
   "version": "0.1.0",
   "description": "Discord message logger by Zeehondie rewritten to TypeScript.",
-  "main": "dist/main.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/main.js",
-    "once": "tsc && npm start",
-    "dev": "tsc-watch --onSuccess \"node dist/main.js dev\"",
-    "lint": "eslint src --ext .js,.ts --ignore-path .gitignore"
-  },
+  "license": "GPL-3.0",
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/keanuplayz/LoggerTS.git"
+    "url": "https://github.com/keanuplayz/LoggerTS"
   },
-  "keywords": [
-    "discord",
-    "bot",
-    "discord.js"
-  ],
-  "author": "Keanu Timmermans",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/keanuplayz/LoggerTS/issues"
+  "main": "./dist/main.js",
+  "engines": {
+    "node": ">=12"
   },
-  "homepage": "https://github.com/keanuplayz/LoggerTS#readme",
+  "scripts": {
+    "clean": "rm -r dist",
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "start": "\"$NODE\" --inspect dist/main.js",
+    "lint": "eslint src --ext .js,.ts --ignore-path .gitignore",
+    "test": "mocha -r ts-node/register tests/**/*.spec.ts"
+  },
   "devDependencies": {
-    "@types/node": "14.14.34",
-    "@types/ws": "7.4.0",
-    "@typescript-eslint/eslint-plugin": "4.17.0",
-    "@typescript-eslint/parser": "4.17.0",
-    "eslint": "7.21.0",
+    "@types/chai": "^4.2.15",
+    "@types/mocha": "^8.2.0",
+    "@types/node": "^14.14.28",
+    "@types/ws": "^7.2.7",
+    "@typescript-eslint/eslint-plugin": "^4.15.0",
+    "@typescript-eslint/parser": "^4.15.0",
+    "chai": "^4.3.0",
+    "eslint": "^7.20.0",
     "eslint-config-dmitmel": "github:dmitmel/eslint-config-dmitmel",
-    "eslint-plugin-node": "11.1.0",
-    "ts-node": "9.1.1",
-    "tsc-watch": "4.2.9",
-    "typescript": "4.2.3"
+    "eslint-plugin-node": "^11.1.0",
+    "mocha": "^8.3.0",
+    "nodemon": "2.0.7",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
   },
   "dependencies": {
-    "discord.js": "^12.5.1",
+    "bufferutil": "^4.0.3",
+    "discord.js": "^12.4.0",
     "discord.js-commando": "^0.12.2"
   }
 }

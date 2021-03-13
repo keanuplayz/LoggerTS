@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v1
         with:
           node-version: '15.x'
 
@@ -21,6 +21,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-3-
+
       - name: ESLint cache
         uses: actions/cache@v2
         with:
@@ -29,6 +30,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-eslint-${{ hashFiles('.eslintrc.yml') }}-
             ${{ runner.os }}-eslint-
+
       - run: npm ci
       - run: npm run build
+      - run: npm run test
       - run: npm run lint --cache

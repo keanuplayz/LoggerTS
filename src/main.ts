@@ -1,72 +1,154 @@
+// Copyright (C) 2019-2020 CCDirectLink members
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import * as discord from 'discord.js';
+import * as commando from 'discord.js-commando';
+import {CCBot} from './ccbot';
+import CCBotImpl from './ccbot-impl';
+import {Secrets} from './data/structures'
 import * as fs from 'fs';
-import { Config, Data, Secrets } from './data/structures';
-import LoggerImpl from './logger-impl';
-import { LoggerClient } from './logger';
-import { TextChannel } from 'discord.js';
-import { createEmbed } from './utils';
+import * as net from 'net';
 
-class LoggerMain {
-  public readonly client: LoggerClient;
-  public readonly secrets: Secrets;
-  public readonly config: Config;
-  public readonly data: Data;
+/// The one and only main class, that initializes everything.
+class CCBotMain {
+    public readonly client: CCBot;
+    public dataCollector: net.Server | null;
+    public readonly secrets: Secrets;
+    public constructor() {
+        // This file may not exist in Travis.
+        // So apparently the globalThis require thing doesn't work;
+        // 1. Webpack *may* be providing the JSON conversion
+        // 2. globalThis is >= Node 12.*
+        this.secrets = JSON.parse(fs.readFileSync('secrets.json', 'utf8'));
+        // See ccbot-impl.ts for more details on what's going on here.
+        // Use CCBot to refer to the class.
+        this.client = new CCBotImpl({
+            owner: this.secrets.owner,
+            commandPrefix: this.secrets.commandPrefix
+        }, this.secrets.twitchClientId, this.secrets.youtubeData3Key);
+        this.dataCollector = null;
 
-  public constructor() {
-    this.secrets = JSON.parse(fs.readFileSync('secrets.json', 'utf8'));
-    this.client = new LoggerImpl({
-      owner: this.secrets.owner,
-      commandPrefix: this.secrets.commandPrefix,
-    });
-    this.config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-    this.data = JSON.parse(fs.readFileSync('data.json', 'utf8'));
-
-    const kickstart = async (): Promise<void> => {
-      try {
-        await this.client.login(this.secrets.token);
-      } catch (e) {
-        console.error(e);
-        process.exit(1);
-      }
-    };
-    kickstart();
-  }
+        const kickstart = async (): Promise<void> => {
+            try {
+                // Makes sure that data isn't corrupt, makes sure that data is available
+                await this.client.loadData();
+                // Ok, *now* login
+                await this.client.login(this.secrets.token);
+                this.startDataCollector();
+            } catch (e) {
+                console.error(e);
+                process.exit(1); // eslint-disable-line no-process-exit
+            }
+        }
+        kickstart();
+    }
+    private startDataCollector(): void {
+        // The data collector is "outside the system".
+        if (this.secrets.dataCollectionPort) {
+            // Data tallys
+            let tallyRaw = 0;
+            let tallyCreatedMessages = 0;
+            let tallyCommandsExecuted = 0;
+            const tallyCommandsBreakdown = new Map<string, number>();
+            const entitiesBreakdown = new Map<string, number>();
+            // Data incoming
+            this.client.on('raw', (): void => {
+                tallyRaw++;
+            });
+            this.client.on('message', (msg: discord.Message): void => {
+                if (msg.author == this.client.user)
+                    tallyCreatedMessages++;
+            });
+            this.client.on('commandRun', (command: commando.Command): void => {
+                tallyCommandsExecuted++;
+                tallyCommandsBreakdown.set(command.name, (tallyCommandsBreakdown.get(command.name) || 0) + 1);
+            });
+            // commandsExecuted
+            // Main collector
+            this.dataCollector = new net.Server();
+            this.dataCollector.on('connection', (socket: net.Socket): void => {
+                socket.on('error', (): void => {});
+                entitiesBreakdown.clear();
+                for (const { type } of this.client.entities.entities.values()) {
+                    entitiesBreakdown.set(type, (entitiesBreakdown.get(type) || 0) + 1);
+                }
+                const guildsBreakdownYes = this.client.guilds.cache.filter((_guild) => {
+                    return true;
+                }).size;
+                const guildsBreakdownSBS = this.client.guilds.cache.filter((_guild) => {
+                    return false;
+                }).size;
+                const guildsBreakdownNo = this.client.guilds.cache.size - (guildsBreakdownYes + guildsBreakdownSBS);
+                socket.end(`${JSON.stringify({
+                    // ltp
+                    guildsBreakdown: {
+                        yes: guildsBreakdownYes,
+                        sbs: guildsBreakdownSBS,
+                        no: guildsBreakdownNo
+                    },
+                    commandsExecutedBreakdown: Object.fromEntries(tallyCommandsBreakdown),
+                    // esd
+                    emotesGlobalRegistry: this.client.emoteRegistry.globalEmoteRegistry.size,
+                    emoteConflicts: this.client.emoteRegistry.globalConflicts,
+                    // hdd
+                    entities: this.client.entities.entities.size,
+                    entitiesBreakdown: Object.fromEntries(entitiesBreakdown),
+                    settingsLenChars: Buffer.byteLength(JSON.stringify(this.client.dynamicData.settings.data)),
+                    // old stuff
+                    guilds: this.client.guilds.cache.size,
+                    channels: this.client.channels.cache.size,
+                    emotes: this.client.emojis.cache.size,
+                    rawEvents: tallyRaw,
+                    // Not necessarily accurate for side-by-side.
+                    messagesCreated: tallyCreatedMessages,
+                    commandsExecuted: tallyCommandsExecuted
+                }).replace(/\n/g, '')}\n`);
+                // Reset tallys
+                tallyRaw = 0;
+                tallyCreatedMessages = 0;
+                tallyCommandsExecuted = 0;
+                tallyCommandsBreakdown.clear();
+            });
+            this.dataCollector.listen(this.secrets.dataCollectionPort, this.secrets.dataCollectionHost);
+        }
+    }
+    public destroy(): Promise<void> {
+        if (this.dataCollector)
+            this.dataCollector.close();
+        return this.client.destroy();
+    }
 }
 
-const logger = new LoggerMain();
+const ccbot = new CCBotMain();
 let shuttingDown = false;
-let cmdText = '';
-
-logger.client.on('ready', (): void => {
-  console.log(logger.client.commandPrefix);
-  logger.client.registry.commands.forEach((command) => {
-    command.name += cmdText;
-  });
-  console.log(cmdText);
-});
-
-logger.client.on('message', (msg) => {
-  if (msg.author.id == logger.client.user?.id) return;
-  console.log(msg.content)
-  const chan = logger.client.channels.cache.get(logger.config.sendChannel) as TextChannel;
-  const source = logger.client.channels.cache.get(msg.channel.id) as TextChannel;
-  const emb = createEmbed(`Message from ${source.name}`, msg.content);
-  chan.send({ embed: emb });
-})
 
 async function shutdown(): Promise<void> {
-  if (shuttingDown) return;
-  console.log('Goodbye.');
-  shuttingDown = true;
-  try {
-    logger.client.destroy();
-  } catch (e) {
-    console.error(e);
-  }
-  process.exit(0);
+    if (shuttingDown)
+        return;
+    console.log('Goodbye.');
+    shuttingDown = true;
+    try {
+        await ccbot.destroy();
+    } catch (e) {
+        console.error('During shutdown:', e);
+    }
+    process.exit(0); // eslint-disable-line no-process-exit
 }
 
 process.on('exit', shutdown);
-// process.on('SIGINT', shutdown);
-// process.on('SIGTERM', shutdown);
-// process.on('SIGUSR1', shutdown);
-// process.on('SIGUSR2', shutdown);
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+process.on('SIGUSR1', shutdown);
+process.on('SIGUSR2', shutdown);
