@@ -37,7 +37,7 @@ class CCBotMain {
         this.client = new CCBotImpl({
             owner: this.secrets.owner,
             commandPrefix: this.secrets.commandPrefix
-        }, this.secrets.twitchClientId, this.secrets.youtubeData3Key);
+        });
         this.dataCollector = null;
 
         const kickstart = async (): Promise<void> => {
