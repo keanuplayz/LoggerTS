@@ -47,12 +47,16 @@ class LoggerEntity extends CCBotEntity {
 
             const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel
             const chan = m.channel as discord.TextChannel
+            const logEmbed = new discord.MessageEmbed({ color: 0x0F9D58 })
+            logEmbed.setAuthor(`Message in ${chan.name}`, m.author.displayAvatarURL({ dynamic: true }))
+            logEmbed.setTitle(`${m.author.username} says:`)
+            logEmbed.setDescription(m.content)
             let pingtext = "";
 
             this.pingIDs.forEach(id => {pingtext += `<@${id}> `});
             
             if(this.logChannels.includes(chan.id)) {
-                logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? pingtext : ""}\n${m.content}`)
+                logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? pingtext : ""}`, { embed: logEmbed })
             }
             
         };
