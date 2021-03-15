@@ -26,7 +26,7 @@
   },
   "homepage": "https://github.com/keanuplayz/LoggerTS#readme",
   "devDependencies": {
-    "@types/node": "14.14.34",
+    "@types/node": "14.14.35",
     "@types/ws": "7.4.0",
     "@typescript-eslint/eslint-plugin": "4.18.0",
     "@typescript-eslint/parser": "4.18.0",
