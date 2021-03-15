@@ -21,6 +21,7 @@ export interface LoggerData extends EntityData {
     sendChannel: string;
     logChannels: string[];
     keywords: string[];
+    pingIDs: string[];
 }
 
 /// Listens for messages in specific channels, and redirects them to a specific channel.
@@ -29,12 +30,14 @@ class LoggerEntity extends CCBotEntity {
     public readonly sendChannel: string;
     public readonly logChannels: string[];
     public readonly keywords: string[];
+    public readonly pingIDs: string[];
 
     public constructor(c: CCBot, data: LoggerData) {
         super(c, 'logger', data);
         this.sendChannel = data.sendChannel;
         this.logChannels = data.logChannels;
         this.keywords = data.keywords;
+        this.pingIDs = data.pingIDs;
         
         this.messageListener = (m: discord.Message): void => {
             if (this.killed)
@@ -44,9 +47,12 @@ class LoggerEntity extends CCBotEntity {
 
             const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel
             const chan = m.channel as discord.TextChannel
+            let pingtext = "";
+
+            this.pingIDs.forEach(id => {pingtext += `<@${id}> `});
             
             if(this.logChannels.includes(chan.id)) {
-                logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? "<@717352467280691331>" : ""}\n${m.content}`)
+                logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? pingtext : ""}\n${m.content}`)
             }
             
         };
@@ -62,7 +68,8 @@ class LoggerEntity extends CCBotEntity {
         return Object.assign(super.toSaveData(), {
             sendChannel: this.sendChannel,
             logChannels: this.logChannels,
-            keywords: this.keywords
+            keywords: this.keywords,
+            pingIDs: this.pingIDs
         });
     }
 }
