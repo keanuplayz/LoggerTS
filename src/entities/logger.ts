@@ -51,6 +51,10 @@ class LoggerEntity extends CCBotEntity {
             logEmbed.setAuthor(`Message in ${chan.name}`, m.author.displayAvatarURL({ dynamic: true }))
             logEmbed.setTitle(`${m.author.username} says:`)
             logEmbed.setDescription(m.content)
+            if (m.attachments.size !== 0) {
+                /// @ts-expect-error Since the attachment *might* be undefined, TS complains. It's in an IF block for a reason.
+                logEmbed.setImage(m.attachments.first().url)
+            }
             let pingtext = "";
 
             this.pingIDs.forEach(id => {pingtext += `<@${id}> `});
