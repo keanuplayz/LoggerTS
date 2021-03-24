@@ -8,5 +8,6 @@ secrets.json
 dynamic-data/entities.json
 dynamic-data/settings.json
 dynamic-data/public/emote-registry.json*
+dynamic-data/media
 
 init.sh

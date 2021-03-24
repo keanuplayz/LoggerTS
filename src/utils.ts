@@ -168,6 +168,10 @@ export function checkIntegerResult(a: number): void {
         throw new Error(`Operation result became ${a}`);
 }
 
+export function randomID(): string {
+    return Math.random().toString(36).substring(2, 6) + Math.random().toString(36).substring(2, 6);
+}
+
 /// Retrieves a JSON file from the 'web
 /// NOTE: headers is modified for added spice.
 export function getJSON<T>(endpoint: string, headers: Record<string, string>): Promise<T> {
