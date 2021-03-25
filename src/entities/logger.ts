@@ -23,6 +23,7 @@ import {randomID} from '../utils';
 export interface LoggerData extends EntityData {
     sendChannel: string;
     logChannels: string[];
+    spoilerIDs: string[];
     keywords: string[];
     pingIDs: string[];
     mediaChannel: string;
@@ -35,16 +36,18 @@ class LoggerEntity extends CCBotEntity {
     private mediaListener: (m: discord.Message) => void;
     public readonly sendChannel: string;
     public readonly logChannels: string[];
+    public readonly spoilerIDs: string[];
     public readonly keywords: string[];
     public readonly pingIDs: string[];
     public readonly mediaChannel: string;
 
     public constructor(c: CCBot, data: LoggerData) {
         super(c, 'logger', data);
-        
+
         // Make the data from LoggerData known to the LoggerEntity class.
         this.sendChannel = data.sendChannel;
         this.logChannels = data.logChannels;
+        this.spoilerIDs = data.spoilerIDs;
         this.keywords = data.keywords;
         this.pingIDs = data.pingIDs;
         this.mediaChannel = data.mediaChannel;
@@ -65,10 +68,17 @@ class LoggerEntity extends CCBotEntity {
             const logEmbed = new discord.MessageEmbed({ color: 0x0F9D58 });
             logEmbed.setAuthor(`Message in ${chan.name}`, m.author.displayAvatarURL({ dynamic: true }));
             logEmbed.setTitle(`${m.author.username} says:`);
-            logEmbed.setDescription(m.content);
+
+            if(this.spoilerIDs.includes(m.author.id)) {
+                logEmbed.setDescription(`||${m.content}||`)
+            } else {
+                logEmbed.setDescription(m.content);
+            }
+
             if (m.attachments.size !== 0) {
-                /// @ts-expect-error Since the attachment *might* be undefined, TS complains. It's in an IF block for a reason.
-                logEmbed.setImage(m.attachments.first().url);
+                m.attachments.forEach(attachment => {
+                    logChan.send(`${m.author.username} uploaded:`, { files: [attachment.url] })
+                })
             }
 
             // Add every ID that should be pinged into the message content.
@@ -83,7 +93,7 @@ class LoggerEntity extends CCBotEntity {
             if(this.logChannels.includes(chan.id)) {
                 logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? pingtext : ""}`, { embed: logEmbed });
             }
-            
+
         };
 
         // Message listener for automatically downloading media to a selectable directory.
@@ -93,7 +103,7 @@ class LoggerEntity extends CCBotEntity {
                 return;
             if (m.author.username === c.user?.username)
                 return;
-            
+
             // Definitions for later use.
             const chan = m.channel as discord.TextChannel;
             const mediaChan = c.channels.cache.get(this.mediaChannel) as discord.TextChannel;
@@ -134,6 +144,7 @@ class LoggerEntity extends CCBotEntity {
         return Object.assign(super.toSaveData(), {
             sendChannel: this.sendChannel,
             logChannels: this.logChannels,
+            spoilerIDs: this.spoilerIDs,
             keywords: this.keywords,
             pingIDs: this.pingIDs,
             mediaChannel: this.mediaChannel
