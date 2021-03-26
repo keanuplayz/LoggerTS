@@ -75,7 +75,7 @@ class LoggerEntity extends CCBotEntity {
                 logEmbed.setDescription(m.content);
             }
 
-            if (m.attachments.size !== 0) {
+            if (this.mediaChannel == m.channel.id && m.attachments.size !== 0) {
                 m.attachments.forEach(attachment => {
                     logChan.send(`${m.author.username} uploaded:`, { files: [attachment.url] })
                 })
