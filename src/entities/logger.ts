@@ -64,18 +64,7 @@ class LoggerEntity extends CCBotEntity {
             const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel;
             const chan = m.channel as discord.TextChannel;
 
-            // Embed 
-            const logEmbed = new discord.MessageEmbed({ color: 0x0F9D58 });
-            logEmbed.setAuthor(`Message in ${chan.name}`, m.author.displayAvatarURL({ dynamic: true }));
-            logEmbed.setTitle(`${m.author.username} says:`);
-
-            if(this.spoilerIDs.includes(m.author.id)) {
-                logEmbed.setDescription(`||${m.content}||`)
-            } else {
-                logEmbed.setDescription(m.content);
-            }
-
-            if (m.attachments.size !== 0) {
+            if (m.attachments.size !== 0 && this.logChannels.includes(chan.id)) {
                 m.attachments.forEach(attachment => {
                     logChan.send(`${m.author.username} uploaded:`, { files: [attachment.url] })
                 })
@@ -91,7 +80,20 @@ class LoggerEntity extends CCBotEntity {
               send the embed we created.
             */
             if(this.logChannels.includes(chan.id)) {
-                logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? pingtext : ""}`, { embed: logEmbed });
+                if (m.content) {
+                    // Construct the embed
+                    const logEmbed = new discord.MessageEmbed({ color: 0x0F9D58 });
+                    logEmbed.setAuthor(`Message in ${chan.name}`, m.author.displayAvatarURL({ dynamic: true }));
+                    logEmbed.setTitle(`${m.author.username} says:`);
+
+                    if(this.spoilerIDs.includes(m.author.id)) {
+                        logEmbed.setDescription(`||${m.content}||`)
+                    } else {
+                        logEmbed.setDescription(m.content);
+                    }
+                    
+                    logChan.send(`${this.keywords.some(a=>m.content.includes(a)) ? pingtext : ""}`, { embed: logEmbed });
+                }
             }
 
         };
@@ -106,7 +108,6 @@ class LoggerEntity extends CCBotEntity {
 
             // Definitions for later use.
             const chan = m.channel as discord.TextChannel;
-            // const mediaChan = c.channels.cache.get(this.downloadChannels) as discord.TextChannel;
             const mediaArray = m.attachments.array();
 
             // Check if the channel from which the image originates is the channel where media should be downloaded from.
