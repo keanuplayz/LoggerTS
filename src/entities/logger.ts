@@ -26,7 +26,7 @@ export interface LoggerData extends EntityData {
     spoilerIDs: string[];
     keywords: string[];
     pingIDs: string[];
-    mediaChannel: string;
+    downloadChannels: string[];
 }
 
 /// Listens for messages in specific channels, and redirects them to a specific channel.
@@ -39,7 +39,7 @@ class LoggerEntity extends CCBotEntity {
     public readonly spoilerIDs: string[];
     public readonly keywords: string[];
     public readonly pingIDs: string[];
-    public readonly mediaChannel: string;
+    public readonly downloadChannels: string[];
 
     public constructor(c: CCBot, data: LoggerData) {
         super(c, 'logger', data);
@@ -50,7 +50,7 @@ class LoggerEntity extends CCBotEntity {
         this.spoilerIDs = data.spoilerIDs;
         this.keywords = data.keywords;
         this.pingIDs = data.pingIDs;
-        this.mediaChannel = data.mediaChannel;
+        this.downloadChannels = data.downloadChannels;
 
         // Listener for rerouting the messages from selected channels.
         this.messageListener = (m: discord.Message): void => {
@@ -75,7 +75,7 @@ class LoggerEntity extends CCBotEntity {
                 logEmbed.setDescription(m.content);
             }
 
-            if (this.mediaChannel == m.channel.id && m.attachments.size !== 0) {
+            if (m.attachments.size !== 0) {
                 m.attachments.forEach(attachment => {
                     logChan.send(`${m.author.username} uploaded:`, { files: [attachment.url] })
                 })
@@ -106,11 +106,11 @@ class LoggerEntity extends CCBotEntity {
 
             // Definitions for later use.
             const chan = m.channel as discord.TextChannel;
-            const mediaChan = c.channels.cache.get(this.mediaChannel) as discord.TextChannel;
+            // const mediaChan = c.channels.cache.get(this.downloadChannels) as discord.TextChannel;
             const mediaArray = m.attachments.array();
 
             // Check if the channel from which the image originates is the channel where media should be downloaded from.
-            if (mediaChan.id == chan.id) {
+            if (this.downloadChannels.includes(chan.id)) {
                 // Check if the media directory actually exists, and if not, create it.
                 if (!fs.existsSync("dynamic-data/media")) {
                     fs.mkdirSync("dynamic-data/media");
@@ -147,7 +147,7 @@ class LoggerEntity extends CCBotEntity {
             spoilerIDs: this.spoilerIDs,
             keywords: this.keywords,
             pingIDs: this.pingIDs,
-            mediaChannel: this.mediaChannel
+            downloadChannels: this.downloadChannels
         });
     }
 }
