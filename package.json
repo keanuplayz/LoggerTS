@@ -19,7 +19,7 @@
     "test": "mocha -r ts-node/register tests/**/*.spec.ts"
   },
   "devDependencies": {
-    "@types/chai": "4.2.15",
+    "@types/chai": "4.2.16",
     "@types/mocha": "8.2.2",
     "@types/node": "14.14.37",
     "@types/ws": "7.4.1",
