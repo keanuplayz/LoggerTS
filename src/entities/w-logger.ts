@@ -30,6 +30,7 @@ class WLoggerEntity extends CCBotEntity {
     // All data definitions for the entity.
     private messageListener: (m: discord.Message) => void;
     private editListener: (prev: discord.Message | discord.PartialMessage, next: discord.Message | discord.PartialMessage) => void;
+    private deleteListener: (m: discord.Message | discord.PartialMessage) => void;
     public readonly sendChannel: string;
     public readonly logChannels: string[];
     public readonly keywords: string[];
@@ -112,7 +113,7 @@ class WLoggerEntity extends CCBotEntity {
 
             // Definitions for later use.
             const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel;
-            const webhooks = logChan.fetchWebhooks()
+            const webhooks = logChan.fetchWebhooks();
             const chan = prev.channel as discord.TextChannel;
 
             // Add every ID that should be pinged into the message content.
@@ -139,9 +140,39 @@ class WLoggerEntity extends CCBotEntity {
             }
         }
 
+        this.deleteListener = (m: discord.Message | discord.PartialMessage): void => {
+            if (this.killed)
+                return;
+            if (m.author?.username === c.user?.username)
+            return;
+
+            // Definitions for later use.
+            const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel;
+            const webhooks = logChan.fetchWebhooks();
+            const chan = m.channel as discord.TextChannel;
+
+            if(this.logChannels.includes(chan.id)) {
+                webhooks.then(hooks => {
+                    const hook = hooks.first();
+                    const options: discord.WebhookMessageOptions = {
+                        username: m.author?.username,
+                        avatarURL: m.author?.avatarURL({ dynamic: true })?.toString()
+                    }
+                    // oh god please save me.
+                    /// @ts-expect-error please, god please, the previous message will always hold the previous content you dimwit
+                    if (this.spoilerIDs.includes(m.author.id)) {
+                        hook?.send(`**Deleted:** ||${m.content}||`, options);
+                    } else {
+                        hook?.send(`**Deleted:** ${m.content}`, options);
+                    }
+                })
+            }
+        }
+
         // Register the message listeners.
         this.client.on('message', this.messageListener);
-        this.client.on('messageUpdate',  this.editListener);
+        this.client.on('messageUpdate', this.editListener);
+        this.client.on('messageDelete', this.deleteListener);
     }
 
     // Make sure all listeners are removed when the entity is killed.
@@ -149,6 +180,7 @@ class WLoggerEntity extends CCBotEntity {
         super.onKill(transferOwnership);
         this.client.removeListener('message', this.messageListener);
         this.client.removeListener('messageUpdate', this.editListener);
+        this.client.removeListener('messageDelete', this.deleteListener);
     }
 
     // Properly save the data to the `entities.json` file in `dynamic-data`.
