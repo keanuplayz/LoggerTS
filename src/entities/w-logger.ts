@@ -29,6 +29,7 @@ export interface WLoggerData extends EntityData {
 class WLoggerEntity extends CCBotEntity {
     // All data definitions for the entity.
     private messageListener: (m: discord.Message) => void;
+    private editListener: (prev: discord.Message | discord.PartialMessage, next: discord.Message | discord.PartialMessage) => void;
     public readonly sendChannel: string;
     public readonly logChannels: string[];
     public readonly keywords: string[];
@@ -102,14 +103,52 @@ class WLoggerEntity extends CCBotEntity {
 
         };
 
+        // Listener for rerouting updated messages from selected channels.
+        this.editListener = (prev: discord.Message | discord.PartialMessage, next: discord.Message | discord.PartialMessage): void => {
+            if (this.killed)
+                return;
+            if (prev.author?.username === c.user?.username)
+                return;
+
+            // Definitions for later use.
+            const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel;
+            const webhooks = logChan.fetchWebhooks()
+            const chan = prev.channel as discord.TextChannel;
+
+            // Add every ID that should be pinged into the message content.
+            let pingtext = "";
+            this.pingIDs.forEach(id => {pingtext += `<@${id}> `});
+
+            if(this.logChannels.includes(chan.id)) {
+                if (prev.content) {
+                    webhooks.then(hooks => {
+                        const hook = hooks.first();
+                        const options: discord.WebhookMessageOptions = {
+                            username: prev.author?.username,
+                            avatarURL: prev.author?.avatarURL({ dynamic: true })?.toString()
+                        }
+                        // oh god please save me.
+                        /// @ts-expect-error please, god please, the previous message will always hold the previous content you dimwit
+                        if (this.spoilerIDs.includes(prev.author.id)) {
+                            hook?.send(`${this.keywords.some(a=>next.content?.includes(a)) ? `${pingtext}\n**Previous:** ||${prev.content}||\n**Edited:** ||${next.content}||` : `**Previous:** ||${prev.content}||\n**Edited:** ||${next.content}||`}`, options)
+                        } else {
+                            hook?.send(`${this.keywords.some(a=>next.content?.includes(a)) ? `${pingtext}\n**Previous:** ${prev.content}\n**Edited:** ${next.content}` : `**Previous:** ${prev.content}\n**Edited:** ${next.content}`}`, options)
+                        }
+                    })
+                }
+            }
+        }
+
         // Register the message listeners.
         this.client.on('message', this.messageListener);
+        this.client.on('messageUpdate',  this.editListener);
     }
 
     // Make sure all listeners are removed when the entity is killed.
     public onKill(transferOwnership: boolean): void {
         super.onKill(transferOwnership);
         this.client.removeListener('message', this.messageListener);
+        this.client.removeListener('messageUpdate', this.editListener);
     }
 
     // Properly save the data to the `entities.json` file in `dynamic-data`.
