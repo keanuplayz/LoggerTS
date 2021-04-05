@@ -13,9 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import * as https from 'https';
+import * as fs from 'fs';
 import * as discord from 'discord.js';
 import {CCBot, CCBotEntity} from '../ccbot';
 import {EntityData} from '../entity-registry';
+import {randomID} from '../utils';
 
 export interface WLoggerData extends EntityData {
     sendChannel: string;
@@ -23,6 +26,7 @@ export interface WLoggerData extends EntityData {
     keywords: string[];
     spoilerIDs: string[];
     pingIDs: string[];
+    downloadChannels: string[];
 }
 
 /// Listens for messages in specific channels, and redirects them to a specific channel.
@@ -31,11 +35,13 @@ class WLoggerEntity extends CCBotEntity {
     private messageListener: (m: discord.Message) => void;
     private editListener: (prev: discord.Message | discord.PartialMessage, next: discord.Message | discord.PartialMessage) => void;
     private deleteListener: (m: discord.Message | discord.PartialMessage) => void;
+    private mediaListener: (m: discord.Message) => void;
     public readonly sendChannel: string;
     public readonly logChannels: string[];
     public readonly keywords: string[];
     public readonly spoilerIDs: string[];
     public readonly pingIDs: string[];
+    public readonly downloadChannels: string[];
 
     public constructor(c: CCBot, data: WLoggerData) {
         super(c, 'wlogger', data);
@@ -46,6 +52,7 @@ class WLoggerEntity extends CCBotEntity {
         this.keywords = data.keywords;
         this.spoilerIDs = data.spoilerIDs;
         this.pingIDs = data.pingIDs;
+        this.downloadChannels = data.downloadChannels;
 
         // Listener for rerouting the messages from selected channels.
         this.messageListener = (m: discord.Message): void => {
@@ -169,8 +176,39 @@ class WLoggerEntity extends CCBotEntity {
             }
         }
 
+        // Message listener for automatically downloading media to a selectable directory.
+        this.mediaListener = (m: discord.Message): void => {
+            // Some checks to make sure no weirdness happens.
+            if (this.killed)
+                return;
+            if (m.author.username === c.user?.username)
+                return;
+
+            // Definitions for later use.
+            const chan = m.channel as discord.TextChannel;
+            const mediaArray = m.attachments.array();
+
+            // Check if the channel from which the image originates is the channel where media should be downloaded from.
+            if (this.downloadChannels.includes(chan.id)) {
+                // Check if the media directory actually exists, and if not, create it.
+                if (!fs.existsSync("dynamic-data/media")) {
+                    fs.mkdirSync("dynamic-data/media");
+                }
+                // Then, for each file in the array of attachments in the message,
+                mediaArray.forEach(file => {
+                    // Create a writestream for later use,
+                    let downFile = fs.createWriteStream(`dynamic-data/media/${randomID()} - ${file.name}`)
+                    https.get(file.url, res => {
+                        // And pipe the attachment content into the writestream.
+                        res.pipe(downFile)
+                    })
+                })
+            }
+        };
+
         // Register the message listeners.
         this.client.on('message', this.messageListener);
+        this.client.on('message', this.mediaListener);
         this.client.on('messageUpdate', this.editListener);
         this.client.on('messageDelete', this.deleteListener);
     }
@@ -179,6 +217,7 @@ class WLoggerEntity extends CCBotEntity {
     public onKill(transferOwnership: boolean): void {
         super.onKill(transferOwnership);
         this.client.removeListener('message', this.messageListener);
+        this.client.removeListener('message', this.mediaListener);
         this.client.removeListener('messageUpdate', this.editListener);
         this.client.removeListener('messageDelete', this.deleteListener);
     }
@@ -191,6 +230,7 @@ class WLoggerEntity extends CCBotEntity {
             keywords: this.keywords,
             spoilerIDs: this.spoilerIDs,
             pingIDs: this.pingIDs,
+            downloadChannels: this.downloadChannels
         });
     }
 }
