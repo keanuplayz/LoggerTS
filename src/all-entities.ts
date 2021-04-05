@@ -18,6 +18,7 @@ import loadPageSwitcher from './entities/page-switcher';
 import {loadPurgeDatabase, loadPurgeDatabaseChannel} from './entities/purge-database';
 import loadCountdownActivity from './entities/countdown-activity';
 import loadLogger from './entities/logger';
+import wloadLogger from './entities/w-logger';
 import {CCBot} from './ccbot';
 
 /// Registers all the entities. (More or less.)
@@ -28,5 +29,6 @@ export default function registerAllEntities(cr: CCBot): void {
         .registerEntityType('purge-database', loadPurgeDatabase)
         .registerEntityType('purge-database-channel', loadPurgeDatabaseChannel)
         .registerEntityType('countdown-activity', loadCountdownActivity)
-        .registerEntityType('logger', loadLogger);
+        .registerEntityType('logger', loadLogger)
+        .registerEntityType('wlogger', wloadLogger);
 }
