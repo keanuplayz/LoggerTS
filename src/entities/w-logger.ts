@@ -21,6 +21,7 @@ export interface WLoggerData extends EntityData {
     sendChannel: string;
     logChannels: string[];
     keywords: string[];
+    spoilerIDs: string[];
     pingIDs: string[];
 }
 
@@ -31,6 +32,7 @@ class WLoggerEntity extends CCBotEntity {
     public readonly sendChannel: string;
     public readonly logChannels: string[];
     public readonly keywords: string[];
+    public readonly spoilerIDs: string[];
     public readonly pingIDs: string[];
 
     public constructor(c: CCBot, data: WLoggerData) {
@@ -40,6 +42,7 @@ class WLoggerEntity extends CCBotEntity {
         this.sendChannel = data.sendChannel;
         this.logChannels = data.logChannels;
         this.keywords = data.keywords;
+        this.spoilerIDs = data.spoilerIDs;
         this.pingIDs = data.pingIDs;
 
         // Listener for rerouting the messages from selected channels.
@@ -54,17 +57,11 @@ class WLoggerEntity extends CCBotEntity {
             const logChan = c.channels.cache.get(this.sendChannel) as discord.TextChannel;
             const webhooks = logChan.fetchWebhooks()
             const chan = m.channel as discord.TextChannel;
-            const attachArray: string[] = []
-
-            // if (m.attachments.size !== 0 && this.logChannels.includes(chan.id)) {
-            //     m.attachments.forEach(attachment => {
-            //         logChan.send(`${m.author.username} uploaded:`, { files: [attachment.url] })
-            //     })
-            // }
+            const attachArray: discord.MessageAttachment[] = [];
 
             if (m.attachments.size !== 0 && this.logChannels.includes(chan.id)) {
-                m.attachments.forEach(attachment => {
-                    attachArray.push(attachment.url)
+                m.attachments.forEach(a => {
+                    attachArray.push(new discord.MessageAttachment(a.url, `${this.spoilerIDs.includes(m.author.id) ? `SPOILER_${a.name}` : a.name}`));
                 })
                 webhooks.then(hooks => {
                     const hook = hooks.first();
@@ -93,9 +90,12 @@ class WLoggerEntity extends CCBotEntity {
                         const options: discord.WebhookMessageOptions = {
                             username: m.author.username,
                             avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
-                            files: attachArray
                         }
-                        hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n${m.content}` : m.content}`, options)
+                        if (this.spoilerIDs.includes(m.author.id)) {
+                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n||${m.content}||` : `||${m.content}||`}`, options)
+                        } else {
+                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n${m.content}` : `${m.content}`}`, options)
+                        }
                     })
                 }
             }
@@ -118,6 +118,7 @@ class WLoggerEntity extends CCBotEntity {
             sendChannel: this.sendChannel,
             logChannels: this.logChannels,
             keywords: this.keywords,
+            spoilerIDs: this.spoilerIDs,
             pingIDs: this.pingIDs,
         });
     }
