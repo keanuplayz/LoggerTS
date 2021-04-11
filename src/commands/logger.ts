@@ -73,3 +73,92 @@ export class LoggerInfoCommand extends CCBotCommand {
         return message.say(`ooo! You haven't started the logger! (no ${entityName})`);
     }
 }
+
+// Based off https://github.com/keanuplayz/travbot-v3/blob/typescript/src/commands/utility/scanemotes.ts
+export class LoggerScanCommand extends CCBotCommand {
+    public constructor(client: CCBot) {
+        const opt = {
+            name: 'scan',
+            description: 'Scans a channel for a certain string.',
+            group: 'logger',
+            memberName: 'scan',
+            hidden: true,
+            guildOnly: true,
+            args: [
+                {
+                    key: 'search',
+                    prompt: 'Search term',
+                    type: 'string',
+                    default: ''
+                }
+            ]
+        }
+        super(client, opt)
+    }
+
+    public async run(message: commando.CommandoMessage, args: {search: string}): Promise<discord.Message|discord.Message[]> {
+        const entityName = 'wlogger'
+        const logger = this.client.entities.getEntity<WLoggerEntity>(entityName);
+
+        if (logger) {
+            const search = new RegExp(`${args.search}`, 'gi');
+            const startTime = Date.now()
+            let totalUserQueryUsage = 0;
+
+            const searchChannels = this.client.channels.cache.filter(
+                (channel) => channel.type === 'text' && logger.logChannels.includes(channel.id)
+            ) as discord.Collection<string, discord.TextChannel>
+
+            let messagesSearched = 0;
+            let channelsSearched = 0;
+            let currentChannelName = "";
+            const totalChannels = searchChannels.size;
+            const statusMessage = await message.say(`Searching ${totalChannels} channels...`);
+            message.channel.startTyping();
+
+            const interval = setInterval(() => {
+                statusMessage.edit(`Searching channel \`${currentChannelName}\`... (${messagesSearched} messages scanned, ${channelsSearched}/${totalChannels} channels scanned)`)
+
+            })
+
+            for (const channel of searchChannels.values()) {
+                currentChannelName = channel.name;
+                let selected = channel.lastMessageID ?? message.id;
+                let continueloop = true;
+
+                while (continueloop) {
+                    const messages = await channel.messages.fetch({
+                        limit: 100,
+                        before: selected
+                    });
+
+                    if (messages.size > 0) {
+                        for (const msg of messages.values()) {
+                            const text = msg.content;
+                            let match: RegExpExecArray | null;
+                            while (match = search.exec(text)) {
+                                totalUserQueryUsage++;
+                            }
+                        }
+
+                        selected = channel.id;
+                        messagesSearched++;
+                    }
+                    else {
+                        continueloop = false;
+                        channelsSearched++;
+                    }
+                }
+            }
+
+            const finishTime = Date.now()
+            clearInterval(interval);
+            statusMessage.edit(`Finished operation in ${moment.duration(finishTime - startTime).humanize()}.`);
+            message.channel.stopTyping();
+
+            return await message.say(`Found ${totalUserQueryUsage} times.`);
+        }
+
+        return message.say(`ooo! You haven't started the logger! (no ${entityName})`);
+    }
+}
