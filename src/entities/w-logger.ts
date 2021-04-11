@@ -30,7 +30,7 @@ export interface WLoggerData extends EntityData {
 }
 
 /// Listens for messages in specific channels, and redirects them to a specific channel.
-class WLoggerEntity extends CCBotEntity {
+export class WLoggerEntity extends CCBotEntity {
     // All data definitions for the entity.
     private messageListener: (m: discord.Message) => void;
     private editListener: (prev: discord.Message | discord.PartialMessage, next: discord.Message | discord.PartialMessage) => void;

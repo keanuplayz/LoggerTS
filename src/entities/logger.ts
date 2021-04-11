@@ -30,7 +30,7 @@ export interface LoggerData extends EntityData {
 }
 
 /// Listens for messages in specific channels, and redirects them to a specific channel.
-class LoggerEntity extends CCBotEntity {
+export class LoggerEntity extends CCBotEntity {
     // All data definitions for the entity.
     private messageListener: (m: discord.Message) => void;
     private mediaListener: (m: discord.Message) => void;

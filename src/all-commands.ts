@@ -17,6 +17,7 @@ import ReloadCommand from './commands/reload';
 import CounterCommand from './commands/counter';
 import PingCommand from './commands/ping';
 import {SettingsCommand, SettingsContext, SettingsOperation, ShowUserSettingsCommand} from './commands/settings';
+import {LoggerInfoCommand} from './commands/logger';
 import {CCBot} from './ccbot';
 
 /// Registers all the commands. (More or less.)
@@ -49,5 +50,7 @@ export default function registerAllCommands(cr: CCBot): void {
 
         .registerGroup('general')
         .registerCommand(new PingCommand(cr))
-        .registerGroup('roles')
+
+        .registerGroup('logger')
+        .registerCommand(new LoggerInfoCommand(cr))
 }
