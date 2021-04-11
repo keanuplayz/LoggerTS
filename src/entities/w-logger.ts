@@ -97,7 +97,7 @@ class WLoggerEntity extends CCBotEntity {
                     webhooks.then(hooks => {
                         const hook = hooks.first();
                         const options: discord.WebhookMessageOptions = {
-                            username: m.author.username,
+                            username: `${m.author.username} (#${chan.name})`,
                             avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
                         }
                         if (this.spoilerIDs.includes(m.author.id)) {
@@ -132,7 +132,7 @@ class WLoggerEntity extends CCBotEntity {
                     webhooks.then(hooks => {
                         const hook = hooks.first();
                         const options: discord.WebhookMessageOptions = {
-                            username: prev.author?.username,
+                            username: `${prev.author?.username} (#${chan.name})`,
                             avatarURL: prev.author?.avatarURL({ dynamic: true })?.toString()
                         }
                         // oh god please save me.
@@ -162,7 +162,7 @@ class WLoggerEntity extends CCBotEntity {
                 webhooks.then(hooks => {
                     const hook = hooks.first();
                     const options: discord.WebhookMessageOptions = {
-                        username: m.author?.username,
+                        username: `${m.author?.username} (#${chan.name})`,
                         avatarURL: m.author?.avatarURL({ dynamic: true })?.toString()
                     }
                     // oh god please save me.
