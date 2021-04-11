@@ -117,8 +117,7 @@ export class LoggerScanCommand extends CCBotCommand {
 
             const interval = setInterval(() => {
                 statusMessage.edit(`Searching channel \`${currentChannelName}\`... (${messagesSearched} messages scanned, ${channelsSearched}/${totalChannels} channels scanned)`)
-
-            })
+            }, 5000)
 
             for (const channel of searchChannels.values()) {
                 currentChannelName = channel.name;
@@ -134,15 +133,11 @@ export class LoggerScanCommand extends CCBotCommand {
                     if (messages.size > 0) {
                         for (const msg of messages.values()) {
                             const text = msg.content;
-                            let match: RegExpExecArray | null;
-                            match = search.exec(text);
-                            while (match) {
-                                totalUserQueryUsage++;
-                            }
-                        }
+                            totalUserQueryUsage += (text.match(search) ?? []).length
 
-                        selected = channel.id;
-                        messagesSearched++;
+                            selected = msg.id
+                            messagesSearched++;
+                        }
                     }
                     else {
                         continueloop = false;
