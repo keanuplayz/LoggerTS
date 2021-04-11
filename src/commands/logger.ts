@@ -3,7 +3,6 @@ import * as commando from 'discord.js-commando';
 import {CCBot, CCBotCommand} from '../ccbot';
 import {WLoggerEntity} from '../entities/w-logger';
 import * as moment from 'moment';
-import { stringify } from 'node:querystring';
 
 export class LoggerInfoCommand extends CCBotCommand {
     public constructor(client: CCBot) {
@@ -49,7 +48,7 @@ export class LoggerInfoCommand extends CCBotCommand {
                 fields: [
                     {
                         name: 'Logging channels:',
-                        value: logChannels ? logChannels : 'None'
+                        value: logChannels || 'None'
                     },
                     {
                         name: 'Sending to:',
@@ -57,11 +56,11 @@ export class LoggerInfoCommand extends CCBotCommand {
                     },
                     {
                         name: 'Auto-downloading images from:',
-                        value: downloadChannels ? downloadChannels : 'None'
+                        value: downloadChannels || 'None'
                     },
                     {
                         name: 'Spoilering content from:',
-                        value: spoilerUsers ? spoilerUsers : 'None'
+                        value: spoilerUsers || 'None'
                     }
                 ],
                 footer: { text: 'TravBot Message Log' },
@@ -136,7 +135,8 @@ export class LoggerScanCommand extends CCBotCommand {
                         for (const msg of messages.values()) {
                             const text = msg.content;
                             let match: RegExpExecArray | null;
-                            while (match = search.exec(text)) {
+                            match = search.exec(text);
+                            while (match) {
                                 totalUserQueryUsage++;
                             }
                         }
