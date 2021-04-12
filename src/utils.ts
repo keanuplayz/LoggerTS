@@ -258,3 +258,13 @@ export function doneResponse(): string {
         '*wakes up and sees the command. Her eyes widen, she performs the task, and she nods.*',
     ])
 }
+
+/// Returns a representation of the value, pluralising the associated word as needed
+export function pluralise(value: number, root: string, plural = "", singular = "", excludeNumber = false): string {
+    let result = excludeNumber ? "" : `${value} `;
+
+    if (value === 1) result += root + singular;
+    else result += root + plural;
+
+    return result;
+}

@@ -11,3 +11,4 @@ dynamic-data/public/emote-registry.json*
 dynamic-data/media
 
 init.sh
+.vscode/settings.json

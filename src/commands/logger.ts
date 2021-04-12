@@ -3,6 +3,7 @@ import * as commando from 'discord.js-commando';
 import {CCBot, CCBotCommand} from '../ccbot';
 import {WLoggerEntity} from '../entities/w-logger';
 import * as moment from 'moment';
+import { pluralise } from '../utils';
 
 export class LoggerInfoCommand extends CCBotCommand {
     public constructor(client: CCBot) {
@@ -86,7 +87,7 @@ export class LoggerScanCommand extends CCBotCommand {
             args: [
                 {
                     key: 'search',
-                    prompt: 'Search term',
+                    prompt: 'What to search for?',
                     type: 'string',
                     default: ''
                 }
@@ -102,7 +103,17 @@ export class LoggerScanCommand extends CCBotCommand {
         if (logger) {
             const search = new RegExp(`${args.search}`, 'gi');
             const startTime = Date.now()
-            let totalUserQueryUsage = 0;
+
+            const stats: {
+                [id: string]: {
+                    name: string;
+                    users: number;
+                    bots: number;
+                }
+            } = {};
+
+            let totalOccurrences = 0;
+            let messageOccurrences = 0;
 
             const searchChannels = this.client.channels.cache.filter(
                 (channel) => channel.type === 'text' && logger.logChannels.includes(channel.id)
@@ -115,14 +126,36 @@ export class LoggerScanCommand extends CCBotCommand {
             const statusMessage = await message.say(`Searching ${totalChannels} channels...`);
             message.channel.startTyping();
 
+            for (let channel of searchChannels.values()) {
+                stats[channel.id] = {
+                    name: channel.name,
+                    users: 0,
+                    bots: 0
+                }
+            }
+
             const interval = setInterval(() => {
                 statusMessage.edit(`Searching channel \`${currentChannelName}\`... (${messagesSearched} messages scanned, ${channelsSearched}/${totalChannels} channels scanned)`)
             }, 5000)
 
             for (const channel of searchChannels.values()) {
                 currentChannelName = channel.name;
+                let channelID = channel.id;
                 let selected = channel.lastMessageID ?? message.id;
                 let continueloop = true;
+
+                const firstMessage = await channel.messages.fetch(selected);
+                const text = firstMessage.content;
+
+                if (channelID in stats) {
+                    if (firstMessage.author.bot) stats[channelID].bots++;
+                    else {
+                        stats[channelID].users++;
+                        if (text.search(search) > -1) messageOccurrences++;
+                        totalOccurrences += (text.match(search) ?? []).length;
+                    }
+                }
+                messagesSearched++;
 
                 while (continueloop) {
                     const messages = await channel.messages.fetch({
@@ -133,7 +166,16 @@ export class LoggerScanCommand extends CCBotCommand {
                     if (messages.size > 0) {
                         for (const msg of messages.values()) {
                             const text = msg.content;
-                            totalUserQueryUsage += (text.match(search) ?? []).length
+                            totalOccurrences += (text.match(search) ?? []).length;
+
+                            if (channelID in stats) {
+                                if (msg.author.bot && text.search(search) > -1) stats[channelID].bots++;
+                                else {
+                                    stats[channelID].users++;
+                                    if (text.search(search) > -1) messageOccurrences++;
+                                    totalOccurrences += (text.match(search) ?? []).length;
+                                }
+                            }
 
                             selected = msg.id
                             messagesSearched++;
@@ -151,7 +193,21 @@ export class LoggerScanCommand extends CCBotCommand {
             statusMessage.edit(`Finished operation in ${moment.duration(finishTime - startTime).humanize()}.`);
             message.channel.stopTyping();
 
-            return await message.say(`Found ${totalUserQueryUsage} times.`);
+            let sortedChannelIDs = Object.keys(stats).sort((_a, b) => stats[b].users - stats[b].users);
+            const lines: string[] = [];
+            let rank = 1;
+
+            for (const channelID of sortedChannelIDs) {
+                const channel = stats[channelID];
+                const botInfo = channel.bots > 0 ? ` (Bots: ${channel.bots})` : "";
+                lines.push(
+                    `\`#${rank++}\` #${channel.name} x ${totalOccurrences} (${pluralise(messageOccurrences, "msg", "s")}) - ${(
+                        (messageOccurrences / channel.users) * 100 || 0
+                    ).toFixed(3)}%${  botInfo}`
+                )
+            }
+
+            return await message.say(lines, {split: true});
         }
 
         return message.say(`ooo! You haven't started the logger! (no ${entityName})`);
