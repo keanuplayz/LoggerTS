@@ -75,7 +75,7 @@ export class WLoggerEntity extends CCBotEntity {
                 webhooks.then(hooks => {
                     const hook = hooks.first();
                     const options: discord.WebhookMessageOptions = {
-                        username: m.author.username,
+                        username: `${m.author.username} (#${chan.name})`,
                         avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
                         files: attachArray
                     }
@@ -128,22 +128,23 @@ export class WLoggerEntity extends CCBotEntity {
             this.pingIDs.forEach(id => {pingtext += `<@${id}> `});
 
             if(this.logChannels.includes(chan.id)) {
-                if (prev.content) {
-                    webhooks.then(hooks => {
-                        const hook = hooks.first();
-                        const options: discord.WebhookMessageOptions = {
-                            username: `${prev.author?.username} (#${chan.name})`,
-                            avatarURL: prev.author?.avatarURL({ dynamic: true })?.toString()
-                        }
-                        // oh god please save me.
-                        /// @ts-expect-error please, god please, the previous message will always hold the previous content you dimwit
-                        if (this.spoilerIDs.includes(prev.author.id)) {
-                            hook?.send(`${this.keywords.some(a=>next.content?.includes(a)) ? `${pingtext}\n**Previous:** ||${prev.content}||\n**Edited:** ||${next.content}||` : `**Previous:** ||${prev.content}||\n**Edited:** ||${next.content}||`}`, options)
-                        } else {
-                            hook?.send(`${this.keywords.some(a=>next.content?.includes(a)) ? `${pingtext}\n**Previous:** ${prev.content}\n**Edited:** ${next.content}` : `**Previous:** ${prev.content}\n**Edited:** ${next.content}`}`, options)
-                        }
-                    })
-                }
+                if (prev.content === next.content) return;
+                
+                webhooks.then(hooks => {
+                    const hook = hooks.first();
+                    const options: discord.WebhookMessageOptions = {
+                        username: `${prev.author?.username} (#${chan.name})`,
+                        avatarURL: prev.author?.avatarURL({ dynamic: true })?.toString()
+                    }
+                    // oh god please save me.
+                    /// @ts-expect-error please, god please, the previous message will always hold the previous content you dimwit
+                    if (this.spoilerIDs.includes(prev.author.id)) {
+                        hook?.send(`${this.keywords.some(a=>next.content?.includes(a)) ? `${pingtext}\n**Previous:** ||${prev.content}||\n**Edited:** ||${next.content}||` : `**Previous:** ||${prev.content}||\n**Edited:** ||${next.content}||`}`, options)
+                    } else {
+                        hook?.send(`${this.keywords.some(a=>next.content?.includes(a)) ? `${pingtext}\n**Previous:** ${prev.content}\n**Edited:** ${next.content}` : `**Previous:** ${prev.content}\n**Edited:** ${next.content}`}`, options)
+                    }
+                })
+                
             }
         }
 
