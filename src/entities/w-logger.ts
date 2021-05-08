@@ -83,6 +83,18 @@ export class WLoggerEntity extends CCBotEntity {
                 })
             }
 
+            let reftext = "";
+            if (m.reference) {
+                // chan.messages.cache.get(m.reference.messageID)
+                chan.messages.fetch(m.reference.messageID!).then(msg => {
+                    if (this.spoilerIDs.includes(msg.author.id)) {
+                        reftext += `${msg.author.username} said:\n> "||${msg.content}||"`;
+                    } else {
+                        reftext += `${msg.author.username} said:\n> "${msg.content}"`;
+                    }
+                })
+            }
+
             // Add every ID that should be pinged into the message content.
             let pingtext = "";
             this.pingIDs.forEach(id => {pingtext += `<@${id}> `});
@@ -101,9 +113,9 @@ export class WLoggerEntity extends CCBotEntity {
                             avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
                         }
                         if (this.spoilerIDs.includes(m.author.id)) {
-                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n||${m.content}||` : `||${m.content}||`}`, options)
+                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n||${m.content}||` : `${reftext}\n||${m.content}||`}`, options)
                         } else {
-                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n${m.content}` : `${m.content}`}`, options)
+                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n${m.content}` : `${reftext}\n${m.content}`}`, options)
                         }
                     })
                 }
