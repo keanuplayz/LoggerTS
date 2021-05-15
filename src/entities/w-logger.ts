@@ -87,11 +87,10 @@ export class WLoggerEntity extends CCBotEntity {
             if (m.reference) {
                 // chan.messages.cache.get(m.reference.messageID)
                 chan.messages.fetch(m.reference.messageID!).then(msg => {
-                    if (this.spoilerIDs.includes(msg.author.id)) {
-                        reftext += `${msg.author.username} said:\n> "||${msg.content}||"`;
-                    } else {
-                        reftext += `${msg.author.username} said:\n> "${msg.content}"`;
-                    }
+                    const spoilerMark = this.spoilerIDs.includes(msg.author.id) ? "||" : "";
+
+                    reftext += `${msg.author.username} said:`;
+                    reftext += `\n> "${spoilerMark}${msg.content}${spoilerMark}"`;
                 })
             }
 
@@ -112,11 +111,15 @@ export class WLoggerEntity extends CCBotEntity {
                             username: `${m.author.username} (#${chan.name})`,
                             avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
                         }
-                        if (this.spoilerIDs.includes(m.author.id)) {
-                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n||${m.content}||` : `${reftext}\n||${m.content}||`}`, options)
-                        } else {
-                            hook?.send(`${this.keywords.some(a=>m.content.includes(a)) ? `${pingtext}\n${m.content}` : `${reftext}\n${m.content}`}`, options)
-                        }
+
+                        const spoilerMark = this.spoilerIDs.includes(m.author.id) ? "||" : "";
+                        let message = `${spoilerMark}${m.content}${spoilerMark}`;
+                        if (reftext)
+                            message = `${reftext}\n${message}`;
+                        if (this.keywords.some(a=>m.content.includes(a)))
+                            message = `${pingtext}\n${message}`;
+
+                        hook?.send(message , options);
                     })
                 }
             }
