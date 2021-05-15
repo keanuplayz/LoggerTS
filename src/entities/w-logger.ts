@@ -89,8 +89,8 @@ export class WLoggerEntity extends CCBotEntity {
                 chan.messages.fetch(m.reference.messageID!).then(msg => {
                     const spoilerMark = this.spoilerIDs.includes(msg.author.id) ? "||" : "";
 
-                    reftext += `${msg.author.username} said:`;
-                    reftext += `\n> "${spoilerMark}${msg.content}${spoilerMark}"`;
+                    reftext += `${msg.author.username} said:\n`;
+                    reftext += `${spoilerMark}${msg.content.replace(/(^|\n)/g, "$1> ")}${spoilerMark}`;
                 })
             }
 
