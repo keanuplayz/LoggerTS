@@ -77,7 +77,10 @@ export class WLoggerEntity extends CCBotEntity {
                     const options: discord.WebhookMessageOptions = {
                         username: `${m.author.username} (#${chan.name})`,
                         avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
-                        files: attachArray
+                        files: attachArray,
+                        allowedMentions: {
+                            parse: []
+                        }
                     }
                     hook?.send(options)
                 })
@@ -110,6 +113,9 @@ export class WLoggerEntity extends CCBotEntity {
                         const options: discord.WebhookMessageOptions = {
                             username: `${m.author.username} (#${chan.name})`,
                             avatarURL: m.author.avatarURL({ dynamic: true })?.toString(),
+                            allowedMentions: {
+                                parse: []
+                            }
                         }
 
                         const spoilerMark = this.spoilerIDs.includes(m.author.id) ? "||" : "";
@@ -149,7 +155,10 @@ export class WLoggerEntity extends CCBotEntity {
                     const hook = hooks.first();
                     const options: discord.WebhookMessageOptions = {
                         username: `${prev.author?.username} (#${chan.name})`,
-                        avatarURL: prev.author?.avatarURL({ dynamic: true })?.toString()
+                        avatarURL: prev.author?.avatarURL({ dynamic: true })?.toString(),
+                        allowedMentions: {
+                            parse: []
+                        }
                     }
                     // oh god please save me.
                     /// @ts-expect-error please, god please, the previous message will always hold the previous content you dimwit
@@ -179,7 +188,10 @@ export class WLoggerEntity extends CCBotEntity {
                     const hook = hooks.first();
                     const options: discord.WebhookMessageOptions = {
                         username: `${m.author?.username} (#${chan.name})`,
-                        avatarURL: m.author?.avatarURL({ dynamic: true })?.toString()
+                        avatarURL: m.author?.avatarURL({ dynamic: true })?.toString(),
+                        allowedMentions: {
+                            parse: []
+                        }
                     }
                     // oh god please save me.
                     /// @ts-expect-error please, god please, the previous message will always hold the previous content you dimwit
